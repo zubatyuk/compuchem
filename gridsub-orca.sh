@@ -71,9 +71,12 @@ for i in gbw xyz pdb trj; do
         ln -sf \$PBS_O_WORKDIR/\${1%.*}.\$i \${1%.*}.\$i
 done
 
+echo \"\" >> \$1
+echo \"%pal nprocs \$PBS_NP end\" >> \$1
+
 \$ORCA/orca \$1 > \$PBS_O_WORKDIR/\${1%.*}.out
 rm -fr *.tmp* *.ges
-cp -v \${1%.*}.* \$PBS_O_WORKDIR
+cp -vf \${1%.*}.* \$PBS_O_WORKDIR
 "
 elif [ $cluster = 'icyb' ]; then
         endpoint='uagrid.org.ua'
@@ -141,3 +144,4 @@ echo "$xrsl" > jobsub.tmp
 
 #submit job
 arcsub -o .arcjobs -c $endpoint -f jobsub.tmp
+
