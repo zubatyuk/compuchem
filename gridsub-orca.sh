@@ -6,6 +6,9 @@ memory=1024
 nodes=1
 time=50h
 
+orca_pkg_tbz="arcls gsiftp://grid.isma.kharkov.ua/compuchemgridua/common/pkg/orca_2_9_1_linux_x86-64.tbz"
+pkg_trans=0
+
 xrsladd=""
 
 function usage {
@@ -68,9 +71,12 @@ for i in gbw xyz pdb trj; do
         ln -sf \$PBS_O_WORKDIR/\${1%.*}.\$i \${1%.*}.\$i
 done
 
+echo \"\" >> \$1
+echo \"%pal nprocs \$PBS_NP end\" >> \$1
+
 \$ORCA/orca \$1 > \$PBS_O_WORKDIR/\${1%.*}.out
 rm -fr *.tmp* *.ges
-cp -v \${1%.*}.* \$PBS_O_WORKDIR
+cp -vf \${1%.*}.* \$PBS_O_WORKDIR
 "
 elif [ $cluster = 'icyb' ]; then
         endpoint='uagrid.org.ua'
@@ -85,8 +91,10 @@ rm -fr *.tmp* *.ges
 "
 elif [ $cluster = 'imbg' ]; then
         endpoint='https://arc.imbg.org.ua:60000/arex'
+        pkg_trans=1
         script="#!/bin/bash
-tar -xjvf orca.tar.bz2
+mkdir orca
+tar -xjvf orca.tar.bz2 -C orca --strip=1
 rm -fr orca.tar.bz2
 export PATH=\`pwd\`/orca:\$PATH
 orca \$1 > \${1%.*}
@@ -96,8 +104,10 @@ rm -fr orca
 else
         echo 'Unknown cluster. Using most general run script.'
         endpoint=$cluster
+        pkg_trans=1
         script="#!/bin/bash
-tar -xjvf orca.tar.bz2
+mkdir orca
+tar -xjvf orca.tar.bz2 -C orca --strip=1
 rm -fr orca.tar.bz2
 export PATH=\`pwd\`/orca:\$PATH
 orca \$1 > \${1%.*}
@@ -107,6 +117,12 @@ rm -fr orca
 fi
 
 echo "$script" > runscript.tmp
+
+if [ $pkg_trans = 1 ]; then
+        inputFiles="$inputFiles
+(\"orca.tar.bz2\" \"${orca_pkg_tbz}\")
+"
+fi
 
 #make xrsl
 xrsl="&
