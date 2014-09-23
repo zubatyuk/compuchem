@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #defaults
-cluster='ICYB'
+cluster='ISMA'
 memory=1024
 nodes=1
 time=50h
@@ -62,7 +62,7 @@ if [ $cluster = 'isma' ]; then
         endpoint='https://grid.isma.kharkov.ua:60443/arex'
         script="#!/bin/bash
 source /SOFTWARE/bin/pbs_run_envi.sh
-module load mpi/openmpi-1.4
+module load mpi/openmpi-1.6
 module load chem/orca
 cd \$SCRATCH
 cp \$PBS_O_WORKDIR/\$1 .
@@ -138,6 +138,7 @@ $inputFiles
 (stderr=\"${input%.*}.stderr\")
 (jobName=\"${input%.*}\")
 (count=$nodes)
+(countpernode=$nodes)
 $xrsladd
 "
 echo "$xrsl" > jobsub.tmp
